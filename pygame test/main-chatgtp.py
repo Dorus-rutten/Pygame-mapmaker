@@ -8,7 +8,6 @@ map = Map()
 pygame.init()
 
 # Screen and window settings
-os.environ['SDL_VIDEO_CENTERED'] = '1'
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h
 
@@ -19,7 +18,7 @@ TILE_SIZE = 32
 
 scroll_left = False
 scroll_right = False
-scroll_value = 1  # Start scroll_value at 1 for normal size
+scroll_value = 1
 scroll_speed = 0.05
 
 size_swipe_ver = 0
@@ -66,17 +65,12 @@ sprites = []
 current_ascii = 33  # Start with ASCII 33 ('!')
 selected_tile = chr(current_ascii)  # Default selected tile'
 
+level = 0  # Default level number
+level_file = "level_" + str(level) + ".csv"
+
 # File for saving and loading tiles
-SAVE_FILE = "tile_data.json"
+SAVE_FILE = level_file
 
-# Load placeholder tiles
-def load_tiles():
-    """Simulate loading tiles."""
-    tile_dict = {selected_tile: pygame.Surface((TILE_SIZE, TILE_SIZE))}
-    tile_dict[selected_tile].fill((255, 0, 0))  # Red square as example tile
-    return tile_dict
-
-tiles = load_tiles()
 
 # Load saved tiles
 def load_saved_tiles():
@@ -99,28 +93,53 @@ def save_tiles():
         json.dump({str(key): value for key, value in placed_tiles.items()}, f, indent=4)
 
 # Handle scrolling
+# Handle scrolling
 def handle_scroll(event, scroll_value, mouse_pos):
+    global size_swipe_hor, size_swipe_ver
+
     if event.type == pygame.MOUSEBUTTONDOWN and mouse_pos[0] < SIDE_MARGIN:
-        if event.button == 4:  # Scroll up
+        # Get the position of the mouse in the grid
+        prev_tile_size = TILE_SIZE * scroll_value
+        grid_x = (mouse_pos[0] + size_swipe_hor) / prev_tile_size
+        grid_y = (mouse_pos[1] + size_swipe_ver) / prev_tile_size
+
+        # Adjust zoom level
+        if event.button == 4:  # Scroll up (zoom in)
             scroll_value += scroll_speed
-        elif event.button == 5:  # Scroll down
-            scroll_value -= scroll_speed
+        elif event.button == 5:  # Scroll down (zoom out)
+            scroll_value = max(0.1, scroll_value - scroll_speed)  # Minimum zoom level
+
+        # New tile size after zoom
+        new_tile_size = TILE_SIZE * scroll_value
+
+        # Update swipe offsets to keep the mouse position centered
+        size_swipe_hor = int(grid_x * new_tile_size - mouse_pos[0])
+        size_swipe_ver = int(grid_y * new_tile_size - mouse_pos[1])
+
     return scroll_value
+
 
 # Draw grid
 def draw_grid(scroll_value):
     scaled_tile_size = TILE_SIZE * scroll_value
 
+    # Skip grid rendering if tile size is too small
+    if scaled_tile_size < 2:
+        return
+
     # Vertical lines
     for col in range(MAX_COLS + 1):
         x = col * scaled_tile_size - size_swipe_hor
-        if x < SIDE_MARGIN:
+        if 0 <= x < SIDE_MARGIN:
             pygame.draw.line(screen, BLACK, (x, 0), (x, HEIGHT))
 
     # Horizontal lines
     for row in range(ROWS + 1):
         y = row * scaled_tile_size - size_swipe_ver
-        pygame.draw.line(screen, BLACK, (0, y), (SIDE_MARGIN, y))
+        if 0 <= y < window_size[1]:
+            pygame.draw.line(screen, BLACK, (0, y), (SIDE_MARGIN, y))
+
+
 
 # Draw sidebar
 def draw_sidebar():
