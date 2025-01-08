@@ -3,6 +3,15 @@ import os
 import json
 from map import Map
 
+#a list of all the variables and explain what they do.
+#
+#
+#
+#
+#
+#
+#
+#
 map = Map()
 
 # Initialize Pygame
@@ -86,24 +95,10 @@ def load_level():
 def save_level():
     pass
 
-def handle_scroll(event, scroll_value, mouse_pos):
-    global grid_mov_hor, grid_mov_ver, grid_max_x_scaled
-
-    scaled_tile_size = TILE_SIZE * scroll_value
-    if event.type == pygame.MOUSEBUTTONDOWN:
-
-        if event.button == 4:  # Scroll up (zoom in)
-                scroll_value += scroll_speed
-                print("3")
-
-        elif event.button == 5 and scaled_tile_size * COLS > window_size[0] and scaled_tile_size * ROWS > window_size[1]:  # Scroll down (zoom out)
-                scroll_value -= scroll_speed
-                print("4")
+def check_fucking_boundrys(scaled_tile_size):
         
-        # get it out of the boundry thing bro:
-            # print ("5")
-            # scaled_tile_size = window_size[0] / COLS
-            # scroll_value = scaled_tile_size / TILE_SIZE       
+        mouse_pos = pygame.mouse.get_pos()
+        global grid_mov_hor, grid_mov_ver, grid_max_x_scaled, grid_max_y_scaled
 
         grid_x = (mouse_pos[0] + grid_mov_hor) / scaled_tile_size
         grid_y = (mouse_pos[1] + grid_mov_ver) / scaled_tile_size
@@ -111,20 +106,44 @@ def handle_scroll(event, scroll_value, mouse_pos):
         grid_mov_hor = grid_x * scaled_tile_size - mouse_pos[0]
         grid_mov_ver = grid_y * scaled_tile_size - mouse_pos[1]
 
-    return scroll_value, scaled_tile_size
-
-def handle_grid_movement(event):
-    global grid_mov_hor, grid_mov_ver, move_speed, scaled_tile_size
-    # Handle middle mouse button dragging
-    if event.type == pygame.MOUSEMOTION and pygame.mouse.get_pressed()[1]:
-        dx, dy = event.rel  # Relative movement
-
         grid_max_x_scaled = (COLS * scaled_tile_size) - window_size[0]
         grid_max_y_scaled = (ROWS * scaled_tile_size) - window_size[1]
 
+
+        print(scaled_tile_size * COLS- grid_mov_hor, window_size[0])
+        
+        if (scaled_tile_size * COLS) - grid_mov_hor< window_size[0]:
+
+            print("gog")
+        # print(scaled_tile_size)
+
+def handle_scroll(event, scroll_value):
+    global scaled_tile_size
+    if event.type == pygame.MOUSEBUTTONUP:
+        
+        if event.button == 4:  # Scroll up (zoom in)
+                scroll_value += scroll_speed
+                print(".")
+
+        elif event.button == 5:# Scroll down (zoom out)
+                scroll_value -= scroll_speed
+                print("..")
+                check_fucking_boundrys(scaled_tile_size)
+    return scroll_value, scaled_tile_size
+
+def handle_grid_movement(event):
+    global grid_mov_hor, grid_mov_ver, move_speed, scaled_tile_size, grid_max_x_scaled, grid_max_y_scaled
+    # Handle middle mouse button dragging
+    
+    if event.type == pygame.MOUSEMOTION and pygame.mouse.get_pressed()[1]:
+        dx, dy = event.rel  # Relative movement
+
+        check_fucking_boundrys(scaled_tile_size)
+
         grid_mov_hor = max(0, min(grid_mov_hor - dx, grid_max_x_scaled))
         grid_mov_ver = max(0, min(grid_mov_ver - dy, grid_max_y_scaled))
-
+        
+        
 
 def draw_grid(scaled_tile_size):
     # Horizontal lines
@@ -166,10 +185,11 @@ def main():
 
     running = True
     while running:
+        scaled_tile_size = TILE_SIZE * scroll_value
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            scroll_value, scaled_tile_size = handle_scroll(event, scroll_value, pygame.mouse.get_pos())
+            scroll_value, scaled_tile_size = handle_scroll(event, scroll_value)
             tile_selection(event)
             handle_grid_movement(event)
         screen.fill(WHITE)
