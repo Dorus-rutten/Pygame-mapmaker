@@ -12,9 +12,9 @@ info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h
 
 # Define game variables
-ROWS = 500
-MAX_COLS = 500
-TILE_SIZE = 32
+ROWS = 32
+MAX_COLS = 140
+TILE_SIZE = 16
 
 scroll_left = False
 scroll_right = False
@@ -60,7 +60,6 @@ current_ascii = 33
 multi_tiled = [0, 4, 6]
 
 map.load_sprites()
-sprites = []
 
 current_ascii = 33  # Start with ASCII 33 ('!')
 selected_tile = chr(current_ascii)  # Default selected tile'
@@ -70,7 +69,6 @@ level_file = "level_" + str(level) + ".csv"
 
 # File for saving and loading tiles
 SAVE_FILE = level_file
-
 
 # Load saved tiles
 def load_saved_tiles():
@@ -96,12 +94,13 @@ def save_tiles():
 # Handle scrolling
 def handle_scroll(event, scroll_value, mouse_pos):
     global size_swipe_hor, size_swipe_ver
-
+    
     if event.type == pygame.MOUSEBUTTONDOWN and mouse_pos[0] < SIDE_MARGIN:
         # Get the position of the mouse in the grid
         prev_tile_size = TILE_SIZE * scroll_value
         grid_x = (mouse_pos[0] + size_swipe_hor) / prev_tile_size
         grid_y = (mouse_pos[1] + size_swipe_ver) / prev_tile_size
+        print(size_swipe_hor)
 
         # Adjust zoom level
         if event.button == 4:  # Scroll up (zoom in)
@@ -116,6 +115,9 @@ def handle_scroll(event, scroll_value, mouse_pos):
         size_swipe_hor = int(grid_x * new_tile_size - mouse_pos[0])
         size_swipe_ver = int(grid_y * new_tile_size - mouse_pos[1])
 
+        if size_swipe_hor < 0 or size_swipe_ver < 0:
+            size_swipe_hor = 0
+            size_swipe_ver = 0
     return scroll_value
 
 
@@ -157,10 +159,11 @@ def draw_lowerbar():
     screen.blit(text, (10, window_size[1] - lower_bar_height + 10))
 
 # Snap to grid
-def snap_to_grid(pos, scroll_value):
+def snap_to_grid(scroll_value):
+    mouse_pos = pygame.mouse.get_pos()
     scaled_tile_size = TILE_SIZE * scroll_value
-    grid_x = int((pos[0] + size_swipe_hor) // scaled_tile_size)
-    grid_y = int((pos[1] + size_swipe_ver) // scaled_tile_size)
+    grid_x = int((mouse_pos[0] + size_swipe_hor) // scaled_tile_size)
+    grid_y = int((mouse_pos[1] + size_swipe_ver) // scaled_tile_size)
     return grid_x, grid_y
 
 def load_tiles():
@@ -189,7 +192,7 @@ def handle_tile_placement(event, scroll_value):
 
 
     if mouse_pos[0] < SIDE_MARGIN:  # Only handle tiles within the editable area
-        grid_pos = snap_to_grid(mouse_pos, scroll_value)
+        grid_pos = snap_to_grid(scroll_value)
 
         # Left-click: Place tile
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

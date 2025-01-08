@@ -21,13 +21,16 @@ window_size = pygame.display.get_window_size()
 
 # Define game variables
 '''fix: make them chosen by user'''
-ROWS = 500
-COLS = 500
-TILE_SIZE = 32
+ROWS = 100
+COLS = 100
+TILE_SIZE = 16
 
-#scroll setup
+scaled_tile_size = TILE_SIZE
+
+#mouse setup
 scroll_value = 1
 scroll_speed = 0.05
+mouse_pos = pygame.mouse.get_pos()
 
 # Screen setup
 LOWER_MARGIN = window_size[1] / 1
@@ -38,6 +41,15 @@ GRID_MIN_X = 0
 GRID_MIN_Y = 0
 GRID_MAX_X = COLS * TILE_SIZE
 GRID_MAX_Y = ROWS * TILE_SIZE
+
+#grid 
+grid_mov_hor = 0
+grid_mov_ver = 0
+
+grid_max_x_scaled = grid_mov_hor
+grid_max_y_scaled = grid_mov_ver
+
+move_speed = 10  # Speed of grid movement
 
 # Colors
 WHITE = (255, 255, 255)
@@ -58,7 +70,6 @@ removing_tile = False  # Tracks if the right mouse button is held down
 
 
 map.load_sprites()
-sprites = []
 
 current_ascii = 33 # Start with ASCII 33 ('!')
 selected_tile = chr(current_ascii)  # Default selected tile
@@ -66,7 +77,7 @@ selected_tile = chr(current_ascii)  # Default selected tile
 '''make it chouseble by the player'''
 level = 0 # Default level number
 
-level_file = "level_" + str(level) + ".csv"
+level_file = "level_" + str(level) + ".txt"
 SAVE_FILE = level_file
 
 def load_level():
@@ -75,46 +86,94 @@ def load_level():
 def save_level():
     pass
 
+def handle_scroll(event, scroll_value, mouse_pos):
+    global grid_mov_hor, grid_mov_ver, grid_max_x_scaled
 
-def draw_grid(scroll_value):
     scaled_tile_size = TILE_SIZE * scroll_value
+    if event.type == pygame.MOUSEBUTTONDOWN:
 
-    # Vertical lines
+        if event.button == 4:  # Scroll up (zoom in)
+                scroll_value += scroll_speed
+                print("3")
+
+        elif event.button == 5 and scaled_tile_size * COLS > window_size[0] and scaled_tile_size * ROWS > window_size[1]:  # Scroll down (zoom out)
+                scroll_value -= scroll_speed
+                print("4")
+        
+        # get it out of the boundry thing bro:
+            # print ("5")
+            # scaled_tile_size = window_size[0] / COLS
+            # scroll_value = scaled_tile_size / TILE_SIZE       
+
+        grid_x = (mouse_pos[0] + grid_mov_hor) / scaled_tile_size
+        grid_y = (mouse_pos[1] + grid_mov_ver) / scaled_tile_size
+        
+        grid_mov_hor = grid_x * scaled_tile_size - mouse_pos[0]
+        grid_mov_ver = grid_y * scaled_tile_size - mouse_pos[1]
+
+    return scroll_value, scaled_tile_size
+
+def handle_grid_movement(event):
+    global grid_mov_hor, grid_mov_ver, move_speed, scaled_tile_size
+    # Handle middle mouse button dragging
+    if event.type == pygame.MOUSEMOTION and pygame.mouse.get_pressed()[1]:
+        dx, dy = event.rel  # Relative movement
+
+        grid_max_x_scaled = (COLS * scaled_tile_size) - window_size[0]
+        grid_max_y_scaled = (ROWS * scaled_tile_size) - window_size[1]
+
+        grid_mov_hor = max(0, min(grid_mov_hor - dx, grid_max_x_scaled))
+        grid_mov_ver = max(0, min(grid_mov_ver - dy, grid_max_y_scaled))
+
+
+def draw_grid(scaled_tile_size):
+    # Horizontal lines
     for col in range(COLS + 1):
-        x = col * scaled_tile_size
+        x = col * scaled_tile_size - grid_mov_hor
         if x <= window_size[0]:
             pygame.draw.line(screen, BLACK, (x, 0), (x, window_size[0]))
 
+    # Vertical lines
     for row in range(ROWS + 1):
-        y = row * scaled_tile_size
+        y = row * scaled_tile_size - grid_mov_ver
         if y < window_size[1]:
             pygame.draw.line(screen, BLACK, (0, y), (window_size[0], y))
 
-def handle_scroll(event, scroll_value, mouse_pos):
-
-    if event.type == pygame.MOUSEBUTTONDOWN:
-
-
-        # Adjust zoom level
-        if event.button == 4:  # Scroll up (zoom in)
-            scroll_value += scroll_speed
-        elif event.button == 5:  # Scroll down (zoom out)
-            scroll_value -= scroll_speed
+""""is this needed?"""
+def snap_to_grid(mouse_pos,scaled_tile_size):
+    grid_x = int((mouse_pos[0] + grid_mov_hor) // scaled_tile_size)
+    grid_y = int((mouse_pos[1] + grid_mov_ver) // scaled_tile_size)
+    return grid_x, grid_y
 
 
+def load_tiles():
+    return map.tiles  # Assuming map.tiles is already loaded with textures
 
+tiles = load_tiles()  # Update to use actual textures
+
+def tile_selection(event):
+    global current_ascii, selected_tile
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_UP:
+            current_ascii = min(current_ascii + 1, 126)  # Limit to printable ASCII
+        elif event.key == pygame.K_DOWN:
+            current_ascii = max(current_ascii - 1, 33)   # Avoid non-printable ASCII
+        selected_tile = chr(current_ascii)
+        print(f"Selected Tile: {selected_tile}")  # For debugging
 
 def main():
+    global scroll_value, mouse_pos, scaled_tile_size
 
     running = True
     while running:
-        screen.fill(WHITE)
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
-        draw_grid(1)
+            scroll_value, scaled_tile_size = handle_scroll(event, scroll_value, pygame.mouse.get_pos())
+            tile_selection(event)
+            handle_grid_movement(event)
+        screen.fill(WHITE)
+        draw_grid(scaled_tile_size)
 
         pygame.display.flip()
         clock.tick(FPS)
