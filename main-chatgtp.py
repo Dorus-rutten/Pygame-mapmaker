@@ -187,41 +187,31 @@ def tile_selection(event):
 
 # Handle tile placement and removal
 def handle_tile_placement(event, scroll_value):
-        global placing_tile, removing_tile
-        mouse_pos = pygame.mouse.get_pos()
+    global placing_tile, removing_tile, placed_tiles, selected_tile, multi_tiled
 
-<<<<<<< HEAD
-=======
-
-    if mouse_pos[0] < SIDE_MARGIN:  # Only handle tiles within the editable area
->>>>>>> f0313660f7960440773c966bd22d032edcda4af7
-        grid_pos = snap_to_grid(scroll_value)
-
-        # Left-click: Place tile
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.button == 1:  # Left mouse button
             placing_tile = True
-            placed_tiles[grid_pos] = selected_tile
-
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            placing_tile = False
-
-        # Right-click: Remove tile
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+        elif event.button == 3:  # Right mouse button
             removing_tile = True
-            if grid_pos in placed_tiles:
-                del placed_tiles[grid_pos]
 
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+    elif event.type == pygame.MOUSEBUTTONUP:
+        if event.button == 1:  # Left mouse button
+            placing_tile = False
+        elif event.button == 3:  # Right mouse button
             removing_tile = False
 
-        # Continuous placement or removal
-        if placing_tile:
-            placed_tiles[grid_pos] = selected_tile
-        elif removing_tile:
-            if grid_pos in placed_tiles:
-                del placed_tiles[grid_pos]
-
-
+    # Place or remove tiles when mouse is held down
+    if placing_tile or removing_tile:
+        grid_x, grid_y = snap_to_grid(scroll_value)
+        if selected_tile in multi_tiled:
+            for i in range(5):
+                for j in range(5):
+                    placed_tiles[(grid_x + i, grid_y + j)] = selected_tile
+        else:
+            placed_tiles[(grid_x, grid_y)] = selected_tile
+        if removing_tile:
+            placed_tiles.pop((grid_x, grid_y), None)
 
 def handle_grid_movement(event):
     """Handle movement of the grid view."""
@@ -259,6 +249,7 @@ def draw_tiles():
         screen_y = grid_y * scaled_tile_size - size_swipe_ver
         scaled_tile = pygame.transform.scale(tiles[tile_type], (scaled_tile_size, scaled_tile_size))
         screen.blit(scaled_tile, (screen_x, screen_y))
+        print(screen_x, screen_y)
         
 sidebar_scroll = 0
 sidebar_scroll_speed = 20

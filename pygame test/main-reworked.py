@@ -95,7 +95,7 @@ def load_level():
 def save_level():
     pass
 
-<<<<<<< HEAD
+
 def check_fucking_boundrys():
     global scaled_tile_size, scroll_value, grid_mov_hor, grid_mov_ver, grid_max_x_scaled, grid_max_y_scaled
 
@@ -140,7 +140,7 @@ def check_fucking_boundrys(scaled_tile_size):
 def handle_scroll(event, scroll_value):
     global scaled_tile_size
     if event.type == pygame.MOUSEBUTTONUP:
->>>>>>> f0313660f7960440773c966bd22d032edcda4af7
+
         
         if event.button == 4:  # Scroll up (zoom in)
                 scroll_value += scroll_speed
@@ -149,10 +149,9 @@ def handle_scroll(event, scroll_value):
         elif event.button == 5:# Scroll down (zoom out)
                 scroll_value -= scroll_speed
                 print("..")
-<<<<<<< HEAD
-=======
+
                 check_fucking_boundrys(scaled_tile_size)
->>>>>>> f0313660f7960440773c966bd22d032edcda4af7
+
     return scroll_value, scaled_tile_size
 
 def handle_grid_movement(event):
@@ -162,18 +161,18 @@ def handle_grid_movement(event):
     if event.type == pygame.MOUSEMOTION and pygame.mouse.get_pressed()[1]:
         dx, dy = event.rel  # Relative movement
 
-<<<<<<< HEAD
+
         grid_mov_hor = max(0, min(grid_mov_hor - dx, grid_max_x_scaled))
         grid_mov_ver = max(0, min(grid_mov_ver - dy, grid_max_y_scaled))
         
-=======
+
         check_fucking_boundrys(scaled_tile_size)
 
         grid_mov_hor = max(0, min(grid_mov_hor - dx, grid_max_x_scaled))
         grid_mov_ver = max(0, min(grid_mov_ver - dy, grid_max_y_scaled))
         
         
->>>>>>> f0313660f7960440773c966bd22d032edcda4af7
+
 
 def draw_grid(scaled_tile_size):
     # Horizontal lines
@@ -223,18 +222,18 @@ def main():
             scroll_value, scaled_tile_size = handle_scroll(event, scroll_value)
             tile_selection(event)
             handle_grid_movement(event)
-<<<<<<< HEAD
+
             check_fucking_boundrys()
         # print(scaled_tile_size)
         check_fucking_boundrys()
         screen.fill(WHITE)
         draw_grid(scaled_tile_size)
         
-=======
+
         screen.fill(WHITE)
         draw_grid(scaled_tile_size)
 
->>>>>>> f0313660f7960440773c966bd22d032edcda4af7
+
         pygame.display.flip()
         clock.tick(FPS)
         
