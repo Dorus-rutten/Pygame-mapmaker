@@ -190,11 +190,8 @@ def handle_tile_placement(event, scroll_value):
         global placing_tile, removing_tile
         mouse_pos = pygame.mouse.get_pos()
 
-<<<<<<< HEAD
-=======
+        if mouse_pos[0] < SIDE_MARGIN:  # Only handle tiles within the editable area
 
-    if mouse_pos[0] < SIDE_MARGIN:  # Only handle tiles within the editable area
->>>>>>> f0313660f7960440773c966bd22d032edcda4af7
         grid_pos = snap_to_grid(scroll_value)
 
         # Left-click: Place tile
