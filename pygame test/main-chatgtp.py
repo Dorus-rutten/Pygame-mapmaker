@@ -25,7 +25,7 @@ size_swipe_ver = 0
 size_swipe_hor = 0
 
 # Screen setup
-screen = pygame.display.set_mode((WIDTH // 1.5, HEIGHT // 1.5))
+screen = pygame.display.set_mode((WIDTH // 1.5, HEIGHT // 1.5)) 
 window_size = pygame.display.get_window_size()
 
 LOWER_MARGIN = window_size[1] / 1

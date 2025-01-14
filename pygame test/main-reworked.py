@@ -29,7 +29,7 @@ info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h
 
 # Set up display
-screen = pygame.display.set_mode((WIDTH // 1.5, HEIGHT // 1.5))
+screen = pygame.display.set_mode((WIDTH // 1.5, HEIGHT // 1.5), pygame.RESIZABLE)
 window_size = pygame.display.get_window_size()
 
 # Define game variables
@@ -118,7 +118,7 @@ def save_level():
 
 def check_fucking_boundrys():
     global scaled_tile_size, scroll_value, grid_mov_hor, grid_mov_ver, grid_max_x_scaled, grid_max_y_scaled
-
+    window_size = pygame.display.get_window_size()
     grid_max_x_scaled = (COLS * scaled_tile_size) - window_size[0]
     grid_max_y_scaled = (ROWS * scaled_tile_size) - window_size[1]
 
@@ -162,6 +162,7 @@ def handle_grid_movement(event):
         
 
 def draw_grid(scaled_tile_size):
+    window_size = pygame.display.get_window_size()
     # Horizontal lines
     for col in range(COLS + 1):
         x = col * scaled_tile_size - grid_mov_hor
@@ -255,12 +256,13 @@ def main():
             handle_grid_movement(event)
             handle_tile_placement(event)
             check_fucking_boundrys()
+
         # print(scaled_tile_size)
         screen.fill(WHITE)
-        
         check_fucking_boundrys() 
         draw_tiles(scaled_tile_size)
         draw_grid(scaled_tile_size)
+        
         pygame.display.flip()
         clock.tick(FPS)
     save_level()
